@@ -3,20 +3,31 @@ project:
   output-dir: docs
 
 website:
-  title: "amiria1-lab.github.io"
+  title: "Romina Amirian | SDS264"
   navbar:
     left:
       - href: index.qmd
         text: Home
+      - href: text-analysis.qmd
+        text: Text Analysis
+      - href: choropleth.qmd
+        text: Choropleth Maps
       - about.qmd
+    right:
+      - icon: github
+        href: https://github.com/amiria1-lab
+        aria-label: GitHub
+      - icon: envelope
+        href: mailto:amiria1@stoalf.edu
+        aria-label: Email
 
 format:
   html:
-    theme:
-      - cosmo
-      - brand
+    theme: 
+      light: minty
+      dark: solar
     css: styles.css
     toc: true
-
-editor: visual
-
+    page-layout: full
+    code-fold: true
+    code-tools: true

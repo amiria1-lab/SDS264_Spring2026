@@ -1,0 +1,147 @@
+---
+title: "Choropleth Maps"
+---
+
+\## Introduction
+
+This page shows two choropleth maps using data from \`poliscidata::states\`:
+
+1\. \*\*Numeric\*\*: Traffic fatalities per 100,000 people (\`carfatal07\`)
+
+2\. \*\*Categorical\*\*: Political leaning (\`cook_index3\`)
+
+\
+
+```{r}
+library(tidyverse)
+library(maps)
+library(sf)
+library(leaflet)
+library(poliscidata)
+library(viridis)
+library(htmltools)
+```
+
+```{r}
+#map data
+us_states <- map_data("state")
+states_sf <- read_sf("https://rstudio.github.io/leaflet/json/us-states.geojson")
+
+#state data
+state_data <- as_tibble(states) |>
+  select(state, carfatal07, cook_index3) |>
+  mutate(state = str_to_lower(str_trim(state))) |>
+  mutate(state = str_replace_all(state, " ", ""))
+
+#fix state names to match map
+state_data <- state_data |>
+  mutate(state = case_when(
+    state == "northcarolina" ~ "north carolina",
+    state == "southcarolina" ~ "south carolina",
+    state == "northdakota" ~ "north dakota",
+    state == "southdakota" ~ "south dakota",
+    state == "newhampshire" ~ "new hampshire",
+    state == "newjersey" ~ "new jersey",
+    state == "newmexico" ~ "new mexico",
+    state == "newyork" ~ "new york",
+    state == "rhodeisland" ~ "rhode island",
+    state == "westvirginia" ~ "west virginia",
+    TRUE ~ state
+  ))
+
+#merge for static map
+map_data <- us_states |>
+  left_join(state_data, by = c("region" = "state")) |>
+  filter(!region %in% c("alaska", "hawaii"))
+
+```
+
+```{r}
+head(map_data)
+```
+
+Map 1: Traffic Fatalities (Numeric)
+
+Static Map
+
+```{r}
+ggplot(map_data, aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill = carfatal07), color = "white") +
+  coord_map() + theme_void() +
+  scale_fill_viridis_c(name = "Fatalities/100k", option = "plasma") +
+  labs(title = "Traffic Fatality Rates by State")
+
+
+```
+
+\
+\
+
+Insight: Traffic fatality rates vary significantly by state. California (28) and Texas (25) have the highest rates among the states shown, likely due to their large populations and extensive highway systems. In contrast, Illinois (10) and New York (15) have much lower rates, possibly reflecting differences in population density, public transit availability, and traffic safety regulations.
+
+Interactive Map
+
+```{r}
+#merge for interactive
+sf_data <- states_sf |>
+  mutate(name = str_to_lower(name)) |>
+  left_join(state_data, by = c("name" = "state")) |>
+  filter(!name %in% c("alaska", "hawaii"))
+
+#color palette
+pal <- colorNumeric("plasma", sf_data$carfatal07)
+
+#labels
+sf_data$label <- lapply(paste0("<strong>", sf_data$name, "</strong><br>", 
+                                "Fatalities: ", round(sf_data$carfatal07, 1)), 
+                         HTML)
+
+#map
+leaflet(sf_data) |>
+  addTiles() |>
+  setView(-96, 37.8, 4) |>
+  addPolygons(fillColor = ~pal(carfatal07), weight = 2, 
+              fillOpacity = 0.7, label = ~label)
+
+```
+
+Source: poliscidata::states, carfatal07
+
+Map 2: Political Leaning (Categorical)
+
+Static Map
+
+```{r}
+ggplot(map_data, aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill = cook_index3), color = "white") +
+  coord_map() + theme_void() +
+  scale_fill_manual(name = "Leaning", 
+                    values = c("More Dem" = "blue", "Even" = "purple", "More Rep" = "red")) +
+  labs(title = "State Political Leanings")
+
+
+```
+
+Insight: Political leanings follow a clear geographic pattern. Democratic states (blue) cluster on the West Coast and Northeast. Republican states (red) dominate the South and Great Plains. Swing states (purple/Even) form a band across the Midwest and include key battlegrounds like Florida, Ohio, and Colorado. This pattern reflects the urban rural divide in American politics.
+
+Interactive Map
+
+```{r}
+#color factor
+pal_cat <- colorFactor(c("blue", "purple", "red"), sf_data$cook_index3)
+
+#labels
+sf_data$label_cat <- lapply(paste0("<strong>", sf_data$name, "</strong><br>", 
+                                    "Leaning: ", sf_data$cook_index3), HTML)
+
+#map
+leaflet(sf_data) |>
+  addTiles() |>
+  setView(-96, 37.8, 4) |>
+  addPolygons(fillColor = ~pal_cat(cook_index3), weight = 2, 
+              fillOpacity = 0.7, label = ~label_cat)
+
+
+```
+
+Source: poliscidata::states, cook_index3
