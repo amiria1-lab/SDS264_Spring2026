@@ -1,10 +1,9 @@
-
 ---
 title: "Romina Amirian"
-image: media/headshot.png
 toc: false
 about:
   template: jolla
+  image: media/headshot.png
   image-shape: round
   image-width: 17em
   links:
@@ -19,9 +18,8 @@ about:
 Hello! I'm **Romina Amirian**, a student in SDS264 at St. Olaf College.
 
 ### My Interests in Data Science:
-- Text analysis 
+- Text analysis and natural language processing
 - Data visualization and storytelling
 - Statistical modeling
-
 
 *Thanks for visiting my website!*
