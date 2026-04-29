@@ -1,0 +1,5 @@
+echo "# Untitled Quarto Document" > untitled.qmd
+echo "" >> untitled.qmd
+echo "This is my untitled document." >> untitled.qmd
+
+
