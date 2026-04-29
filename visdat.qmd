@@ -1,0 +1,105 @@
+---
+title: "R Tip of the Day: visdat"
+subtitle: "Visualizing Data Quality & Missingness"
+author: "Romina Amirian"
+date: "April 2026"
+format:
+  revealjs:
+    slide-number: true
+execute:
+  echo: true
+---
+
+## 
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(visdat)
+library(palmerpenguins)
+```
+
+##  {auto-animate="true"}
+
+::: {style="text-align: center; margin-top: 150px;"}
+# visdat
+
+## Visualizing Data Quality in R
+:::
+
+## What is visdat?
+
+**visdat** = Visualize + Data
+
+It helps you see what is inside your dataframe at a glance
+
+. . .
+
+**Without visdat:**
+
+-   `str()` gives numbers
+
+-   `summary()` gives numbers
+
+-   Hard to see problems
+
+. . .
+
+**With visdat:**
+
+-   One picture = instant understanding
+
+-   Like an X-ray for your data
+
+## Think of it this way
+
+Would you rather read a spreadsheet of missing values?
+
+. . .
+
+Or look at a heatmap?
+
+. . .
+
+visdat gives you the heatmap.
+
+## Meet the penguins data
+
+```{r}
+penguins
+```
+
+## vis_dat() - The X-Ray
+
+```{r}
+vis_dat(penguins)
+```
+
+## vis_miss() - Finding Missing Data
+
+```{r}
+print(vis_miss(penguins, sort_miss = TRUE))
+
+```
+
+## vis_guess() - Catching Hidden Errors
+
+```{r}
+problem_penguins <- penguins |>
+  slice(1:100) |>
+  mutate(
+    bill_length_mm = as.character(bill_length_mm),
+    bill_length_mm = if_else(row_number() == 42, "missing", bill_length_mm)
+  )
+
+vis_guess(problem_penguins)
+```
+
+## vis_cor() - Correlation Heatmap
+
+```{r}
+penguins |>
+  select(where(is.numeric)) |>
+  vis_cor()
+```
